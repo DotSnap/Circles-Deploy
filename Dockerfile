@@ -4,7 +4,7 @@ EXPOSE 3000
 
 WORKDIR /opt/cloud/
 
-COPY . .
+COPY . /opt/cloud/
 
 RUN dnf update -y \
     && dnf install -y curl \
